@@ -57,24 +57,23 @@
         .card-header-flex h3 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .inline-search { padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; width: 250px; outline: none; }
 
-        /* FIXED ROTATION STYLES */
+        /* MOVED TO TOP STYLING */
+        .final-blurb { 
+            margin-bottom: 1.5rem; 
+            padding: 1rem; 
+            background: #fffbeb; 
+            border: 1px solid #fcd34d; 
+            border-radius: 8px; 
+            color: #92400e; 
+            font-size: 0.9rem; 
+            font-weight: 600;
+            display: none; 
+            line-height: 1.4;
+        }
+
         .program-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .program-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-weight: 500; 
-            font-size: 1rem;
-        }
-        .program-count {
-            background: #f1f5f9;
-            color: var(--primary);
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-        .program-note { display: block; font-size: 0.8rem; color: #b45309; background: #fffbeb; padding: 6px 10px; border-radius: 4px; margin-top: 8px; border-left: 3px solid var(--accent); }
+        .program-header { display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+        .program-count { background: #f1f5f9; color: var(--primary); padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
         th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; }
@@ -109,7 +108,7 @@
 <div class="container">
     <div class="controls-bar">
         <select id="locationSelect" onchange="updateView()">
-            <option value="">Loading sites...</option>
+            <option value="">-- Select Rotation Site --</option>
         </select>
         <button class="btn-primary" style="padding: 0.8rem 1.5rem; border:none; border-radius: 8px; cursor:pointer; background:var(--primary); color:white; font-weight:600;" onclick="refreshData()">↻ Sync</button>
     </div>
@@ -146,6 +145,9 @@
                 <h3>Site-Wide Requirements</h3>
                 <input type="text" id="taskSearch" class="inline-search" placeholder="Filter by requirement name..." onkeyup="filterTasks()">
             </div>
+            
+            <div id="finalBlurb" class="final-blurb"></div>
+
             <div style="overflow-x: auto;">
                 <table id="taskTable">
                     <thead><tr><th>Requirement</th><th>Category</th><th>Assigned To</th><th>Instructions</th></tr></thead>
@@ -236,6 +238,16 @@
         document.getElementById('siteTitle').innerText = loc.name || loc.locationname;
         document.getElementById('siteAddress').innerHTML = `📍 ${loc.address || 'Address not provided'}`;
         document.getElementById('siteNotes').innerText = loc.notes || 'No specific site notes.';
+
+        // Handle the Top Blurb
+        const blurb = loc.finalnotes || loc.blurb || '';
+        const blurbEl = document.getElementById('finalBlurb');
+        if (blurb) {
+            blurbEl.innerText = "💡 " + blurb;
+            blurbEl.style.display = 'block';
+        } else {
+            blurbEl.style.display = 'none';
+        }
 
         const sitePrograms = db.programs.filter(p => (p.locationid || p.id) == locId);
         const siteContacts = db.contacts.filter(c => (c.locationid || c.id) == locId);
