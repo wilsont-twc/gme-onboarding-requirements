@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residency Onboarding Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a4d2e;
+            --primary-light: #2d7a4f;
+            --accent: #d4a574;
+            --bg: #fdfbf7;
+            --card-bg: #ffffff;
+            --text: #2c2c2c;
+            --text-light: #666666;
+            --border: #e8e4dc;
+            --shadow: rgba(26, 77, 46, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Work Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; padding: 2rem; text-align: center;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        .header h1 { font-family: 'Crimson Pro', serif; font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        .controls-bar {
+            background: var(--card-bg); padding: 1.2rem; border-radius: 12px;
+            display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem;
+            box-shadow: 0 4px 12px var(--shadow); border: 1px solid var(--border);
+        }
+
+        select { flex-grow: 1; padding: 0.8rem; border-radius: 8px; border: 2px solid var(--border); font-size: 1rem; cursor: pointer; background: white; }
+
+        .site-profile {
+            grid-column: 1 / -1; background: white; padding: 1.5rem; border-radius: 12px;
+            margin-bottom: 2rem; border-left: 6px solid var(--accent);
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+        .site-profile h2 { font-family: 'Crimson Pro', serif; color: var(--primary); font-size: 2rem; margin-bottom: 0.5rem; }
+        .site-address { font-weight: 500; color: var(--text-light); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .site-notes-box { font-size: 0.9rem; color: var(--text); background: #f9f9f9; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+
+        .grid { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; }
+        .full-width { grid-column: 1 / -1; }
+
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px var(--shadow); border-top: 4px solid var(--accent); height: fit-content; }
+        .card h3 { font-family: 'Crimson Pro', serif; font-size: 1.6rem; color: var(--primary); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+
+        .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .card-header-flex h3 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .inline-search { padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; width: 250px; outline: none; }
+
+        /* FIXED ROTATION STYLES */
+        .program-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .program-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-weight: 500; 
+            font-size: 1rem;
+        }
+        .program-count {
+            background: #f1f5f9;
+            color: var(--primary);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .program-note { display: block; font-size: 0.8rem; color: #b45309; background: #fffbeb; padding: 6px 10px; border-radius: 4px; margin-top: 8px; border-left: 3px solid var(--accent); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 0.9rem; }
+
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
+        .type-health { background: #fce4ec; color: #880e4f; }
+        .type-onboarding { background: #e8f5e9; color: #1b5e20; }
+        .type-document { background: #e3f2fd; color: #0d47a1; }
+        .type-hr { background: #fff3e0; color: #e65100; }
+        .type-training { background: #f3e5f5; color: #4a148c; }
+        .type-default { background: #eeeeee; color: #424242; }
+
+        .doc-link { color: #2563eb; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+        .contact-link { cursor: pointer; text-decoration: underline; color: var(--primary-light); font-weight: 600; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } .inline-search { width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="loading-overlay"><div class="spinner"></div><p style="margin-top: 1rem; font-weight: 500;">Syncing Site Data...</p></div>
+
+<div class="header">
+    <h1>Residency Onboarding</h1>
+    <p>Program Requirements & Site Management</p>
+</div>
+
+<div class="container">
+    <div class="controls-bar">
+        <select id="locationSelect" onchange="updateView()">
+            <option value="">Loading sites...</option>
+        </select>
+        <button class="btn-primary" style="padding: 0.8rem 1.5rem; border:none; border-radius: 8px; cursor:pointer; background:var(--primary); color:white; font-weight:600;" onclick="refreshData()">↻ Sync</button>
+    </div>
+
+    <div id="content" style="display: none;" class="grid">
+        
+        <div class="site-profile" id="siteProfile">
+            <h2 id="siteTitle">Site Name</h2>
+            <div class="site-address" id="siteAddress">📍 Address</div>
+            <div class="site-notes-box" id="siteNotes"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Resident Rotations</h3>
+            <div id="programList"></div>
+            <h2 id="totalCount" style="margin-top: 1.5rem; color: var(--primary); border-top: 2px solid var(--accent); padding-top: 10px; display: flex; justify-content: space-between;">
+                <span>Total Residents</span>
+                <span id="totalNumber">0</span>
+            </h2>
+        </div>
+
+        <div class="card" id="contactCard">
+            <h3>Key Contacts</h3>
+            <div style="overflow-x: auto;">
+                <table id="contactTable">
+                    <thead><tr><th>Name & Title</th><th>Contact</th><th>Address & Notes</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <div class="card-header-flex">
+                <h3>Site-Wide Requirements</h3>
+                <input type="text" id="taskSearch" class="inline-search" placeholder="Filter by requirement name..." onkeyup="filterTasks()">
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="taskTable">
+                    <thead><tr><th>Requirement</th><th>Category</th><th>Assigned To</th><th>Instructions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/14ex4BXz3DNbDeiiyW0xwZzNGXfVok-KzrBcvauIMteM/edit';
+    let db = { locations: [], programs: [], contacts: [], tasks: [] };
+
+    async function init() {
+        showLoader(true);
+        const sheetId = SHEET_URL.match(/\/d\/([^/]+)/)?.[1];
+        try {
+            await Promise.all([
+                fetchSheet(sheetId, 'Locations', 'locations'),
+                fetchSheet(sheetId, 'Programs', 'programs'),
+                fetchSheet(sheetId, 'Contacts', 'contacts'),
+                fetchSheet(sheetId, 'Tasks', 'tasks')
+            ]);
+            populateLocationDropdown();
+        } catch (err) { console.error("Sync Error:", err); } finally { showLoader(false); }
+    }
+
+    async function fetchSheet(id, name, key) {
+        const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        const cols = json.table.cols.map(c => (c.label || "").toLowerCase().replace(/[^a-z]/g, ''));
+        db[key] = json.table.rows.map(row => {
+            let item = {};
+            row.c.forEach((cell, i) => { if (cols[i]) item[cols[i]] = cell ? cell.v : ''; });
+            return item;
+        });
+    }
+
+    function populateLocationDropdown() {
+        const sel = document.getElementById('locationSelect');
+        sel.innerHTML = '<option value="">-- Select Rotation Site --</option>';
+        db.locations = db.locations.filter(loc => (loc.name || loc.locationname))
+            .sort((a, b) => (a.name || a.locationname).localeCompare(b.name || b.locationname));
+        db.locations.forEach((loc, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = loc.name || loc.locationname;
+            sel.appendChild(opt);
+        });
+    }
+
+    function findContact(name) {
+        const cleanName = String(name).toLowerCase().trim();
+        const rows = document.querySelectorAll('#contactTable tbody tr');
+        let found = false;
+        rows.forEach(row => {
+            if (row.innerText.toLowerCase().includes(cleanName)) {
+                row.style.backgroundColor = "#fff3cd";
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                found = true;
+                setTimeout(() => { row.style.backgroundColor = ""; }, 3000);
+            }
+        });
+        if (!found) alert(`Could not find "${name}" in the contact list.`);
+    }
+
+    function filterTasks() {
+        const query = document.getElementById('taskSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#taskTable tbody tr');
+        rows.forEach(row => {
+            const requirementName = row.cells[0].innerText.toLowerCase();
+            row.style.display = requirementName.includes(query) ? "" : "none";
+        });
+    }
+
+    function updateView() {
+        const idx = document.getElementById('locationSelect').value;
+        const content = document.getElementById('content');
+        if (idx === "") { content.style.display = 'none'; return; }
+
+        const loc = db.locations[idx];
+        const locId = loc.id || loc.locationid;
+        content.style.display = 'grid';
+
+        document.getElementById('siteTitle').innerText = loc.name || loc.locationname;
+        document.getElementById('siteAddress').innerHTML = `📍 ${loc.address || 'Address not provided'}`;
+        document.getElementById('siteNotes').innerText = loc.notes || 'No specific site notes.';
+
+        const sitePrograms = db.programs.filter(p => (p.locationid || p.id) == locId);
+        const siteContacts = db.contacts.filter(c => (c.locationid || c.id) == locId);
+        const siteTasks = db.tasks.filter(t => (t.locationid || t.id) == locId);
+
+        let total = 0;
+        document.getElementById('programList').innerHTML = sitePrograms.map(p => {
+            const count = parseInt(p.count || p.residentcount || 0);
+            total += count;
+            const note = p.notes || p.programnotes || '';
+            return `<div class="program-item">
+                <div class="program-header">
+                    <span>${p.name || p.programname}</span>
+                    <span class="program-count">${count}</span>
+                </div>
+                ${note ? `<span class="program-note">⚠️ ${note}</span>` : ''}
+            </div>`;
+        }).join('');
+        document.getElementById('totalNumber').innerText = total;
+
+        document.querySelector('#contactTable tbody').innerHTML = siteContacts.map(c => `
+            <tr>
+                <td><strong>${c.name || ''}</strong><br><small style="color:var(--primary-light); font-weight:600;">${c.title || ''}</small></td>
+                <td><small>📞 ${c.phone || ''}<br>✉️ <a href="mailto:${c.email}">${c.email || ''}</a></small></td>
+                <td><small>${c.address || ''}</small>${c.notes ? `<div class="program-note" style="background:#f9f9f9;">${c.notes}</div>` : ''}</td>
+            </tr>
+        `).join('');
+
+        document.querySelector('#taskTable tbody').innerHTML = siteTasks.map(t => {
+            const type = (t.type || '').toLowerCase();
+            const typeClass = type.includes('health') ? 'type-health' : type.includes('onboarding') ? 'type-onboarding' : type.includes('doc') ? 'type-document' : type.includes('hr') ? 'type-hr' : type.includes('train') ? 'type-training' : 'type-default';
+            const rawAssigned = t.assignedcontacts || t.assigned || '';
+            const people = String(rawAssigned).split(/[,&/]/);
+            const clickablePeople = people.map(p => {
+                const name = p.trim();
+                return name ? `<span class="contact-link" onclick="findContact('${name.replace(/'/g, "\\'")}')">${name}</span>` : '';
+            }).filter(p => p !== '').join(', ');
+
+            const docUrl = t.link || t.documentlink || '';
+            const taskDisplay = docUrl 
+                ? `<a href="${docUrl}" target="_blank" class="doc-link">📄 ${t.name || t.requirement}</a>`
+                : `<strong>${t.name || t.requirement}</strong>`;
+
+            return `<tr>
+                <td style="min-width:180px;">${taskDisplay}</td>
+                <td><span class="status-badge ${typeClass}">${t.type || 'Other'}</span></td>
+                <td style="min-width:140px; color:var(--primary-light);">👤 ${clickablePeople || 'Unassigned'}</td>
+                <td><div style="font-size:0.85rem; white-space:pre-wrap;">${t.notes || ''}</div></td>
+            </tr>`;
+        }).join('');
+        
+        filterTasks(); 
+    }
+
+    function refreshData() { init(); }
+    function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+    window.onload = init;
+</script>
+</body>
+</html>
